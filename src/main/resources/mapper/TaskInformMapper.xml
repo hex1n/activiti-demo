@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.asuka.admin.dao.TaskInformDao">
+    <insert id="add" useGeneratedKeys="true" keyProperty="id">
+
+		insert into task_to_inform(userId,taskInfo,created,user_nick_name,process_instance_id)
+		value (#{userId},#{taskInfo},#{createDate},#{userNickName},#{processInstanceId});
+
+	</insert>
+    <delete id="deleteByProcessInstanceId">
+
+		delete from  task_to_inform where  process_instance_id=#{processInstanceId}
+
+    </delete>
+    <select id="delByUserId" resultType="com.asuka.admin.entity.TaskToInform" parameterType="long">
+		delete from task_to_inform where  userId=#{userId}
+	</select>
+    <select id="getByUserId" resultType="com.asuka.admin.entity.TaskToInform">
+				 SELECT * from  task_to_inform where userId =#{userId} order by created desc limit 0,1;
+	</select>
+    <select id="findTasksByUserId" resultType="com.asuka.admin.entity.act.LeaveApply">
+
+
+		SELECT la. * FROM `task_to_inform` tti LEFT join sys_user su  on su.id = tti.userId
+		LEFT JOIN leave_apply la on la.process_instance_id = tti.process_instance_id WHERE su.id =#{id};
+
+	</select>
+
+</mapper>
