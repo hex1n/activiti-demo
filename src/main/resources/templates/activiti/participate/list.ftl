@@ -15,38 +15,36 @@
 </head>
 <body class="childrenBody">
 <fieldset class="layui-elem-field">
-    <legend>模型检索</legend>
-    <div class="layui-field-box">
-        <form class="layui-form">
-            模型名称 :
-            <div class="layui-inline" style="width: 15%">
-                <input type="text" value="" name="name" class="layui-input search_input">
-            </div>
-            key:
-            <div class="layui-inline" style="width: 15%">
-                <input type="text" value="" name="key" class="layui-input search_input">
-            </div>
-            <div class="layui-inline">
-                <a class="layui-btn" lay-submit="" lay-filter="searchForm">查询</a>
-            </div>
+<#--<legend>模型检索</legend>-->
+<#--<div class="layui-field-box">-->
+<#--<form class="layui-form">-->
+<#--模型名称 :-->
+<#--<div class="layui-inline" style="width: 15%">-->
+<#--<input type="text" value="" name="name" class="layui-input search_input">-->
+<#--</div>-->
+<#--key:-->
+<#--<div class="layui-inline" style="width: 15%">-->
+<#--<input type="text" value="" name="key" class="layui-input search_input">-->
+<#--</div>-->
+<#--<div class="layui-inline">-->
+<#--<a class="layui-btn" lay-submit="" lay-filter="searchForm">查询</a>-->
+<#--</div>-->
 
-            <div class="layui-inline">
-                <a class="layui-btn layui-btn-danger" data-type="deleteSome">批量删除</a>
-            </div>
-            <div class="layui-inline">
-                <a class="layui-btn layui-btn-danger" data-type="addModel">新建模型</a>
-            </div>
-        </form>
+<#--<div class="layui-inline">-->
+<#--<a class="layui-btn layui-btn-danger" data-type="deleteSome">批量删除</a>-->
+<#--</div>-->
+<#--</form>-->
     </div>
 </fieldset>
 <div class="layui-form users_list">
     <table class="layui-table" id="test" lay-filter="demo"></table>
 
     <script type="text/html" id="barDemo">
-        <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
-        <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="deploy">发布</a>
-        <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
-
+        <#--<a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>-->
+        <#--<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="deploy">发布</a>-->
+        <#--<a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>-->
+        <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="leaveDetail"><i
+                class="layui-icon">&#xe640;</i>查看详情</a>
     </script>
 </div>
 <div id="page"></div>
@@ -64,7 +62,7 @@
 
         table.render({
             elem: '#test',
-            url: '/act/process-modelList',
+            url: '/leave/myParticipateProcess',
             method: 'post',
             page: { //支持传入 laypage 组件的所有参数（某些参数除外，如：jump/elem） - 详见文档
                 layout: ['limit', 'count', 'prev', 'page', 'next', 'skip'], //自定义分页布局
@@ -76,13 +74,11 @@
             },
             width: $(parent.window).width() - 223,
             cols: [[
-                {type: 'checkbox'},
-                {field: 'id', title: '流程ID', width: '10%'},
-                {field: 'name', title: '流程名称', width: '15%'},
-                {field: 'key', title: '流程KEY', width: '15%'},
-                {field: 'version', title: '版本号', width: '10%'},
-                {field: 'createTime', title: '创建时间', width: '15%'},
-                {field: 'lastUpdateTime', title: '修改时间', width: '15%'},
+                // {type: 'checkbox'},
+                {field: 'executionId', title: '流程执行ID', width: '20%'},
+                {field: 'processInstanceId', title: '流程实例ID', width: '20%'},
+                {field: 'businessKey', title: '业务KEY', width: '20%'},
+                {field: 'activityId', title: '流程 活动ID', width: '20%'},
                 {fixed: 'right', width: '15%', title: '操作', align: 'center', toolbar: '#barDemo'}
             ]]
         });
@@ -91,8 +87,8 @@
         //监听工具条
         table.on('tool(demo)', function (obj) {
             var data = obj.data;
-            if (obj.event === 'edit') {
-                window.open("/static/modeler.html?modelId=" + data.id)
+            if (obj.event === 'leaveDetail') {
+                window.location.href = "/leave/getShineProcImage?id="+data.processInstanceId;
             }
             else if (obj.event === 'deploy') {
                 layer.confirm("你确定要发布该流程么？", {btn: ['是的,我确定', '我再想想']},

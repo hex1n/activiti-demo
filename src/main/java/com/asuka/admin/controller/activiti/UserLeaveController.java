@@ -6,6 +6,7 @@ import com.asuka.admin.annotation.SysLog;
 import com.asuka.admin.entity.TaskData;
 import com.asuka.admin.entity.TaskToInform;
 import com.asuka.admin.entity.User;
+import com.asuka.admin.entity.act.ActComment;
 import com.asuka.admin.entity.act.LeaveApply;
 import com.asuka.admin.entity.act.LeaveOpinion;
 import com.asuka.admin.entity.act.RunningProcess;
@@ -20,8 +21,8 @@ import org.activiti.bpmn.model.BpmnModel;
 import org.activiti.engine.*;
 import org.activiti.engine.history.HistoricActivityInstance;
 import org.activiti.engine.history.HistoricProcessInstance;
-import org.activiti.engine.history.HistoricTaskInstance;
 import org.activiti.engine.impl.RepositoryServiceImpl;
+import org.activiti.engine.impl.identity.Authentication;
 import org.activiti.engine.impl.persistence.entity.ExecutionEntity;
 import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
 import org.activiti.engine.impl.pvm.PvmTransition;
@@ -29,6 +30,7 @@ import org.activiti.engine.impl.pvm.process.ActivityImpl;
 import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.engine.runtime.ProcessInstance;
 import org.activiti.engine.runtime.ProcessInstanceQuery;
+import org.activiti.engine.task.Comment;
 import org.activiti.engine.task.Task;
 import org.activiti.image.impl.DefaultProcessDiagramGenerator;
 import org.slf4j.Logger;
@@ -44,7 +46,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -64,16 +65,10 @@ public class UserLeaveController {
     @Resource
     private RuntimeService runtimeService;
     @Resource
-    private FormService formService;
-    @Resource
-    private IdentityService identityService;
-    @Resource
     private TaskService taskService;
     @Resource
     private HistoryService historyService;
 
-    @Resource
-    private UserLeaveService userLeaveService;
 
     @Resource
     private LeaveService leaveService;
@@ -91,10 +86,11 @@ public class UserLeaveController {
     private TaskInformService taskInformService;
 
 
-    public static Map<String, Object> variables = new HashMap();
+    public static Map<String, Object> variables = Maps.newHashMap();
 
     public static List<TaskData> taskDataList = Lists.newArrayList();
 
+    public static Map<String, Object> leaveOptionFlag = Maps.newHashMap();
 
     @GetMapping("/showLeaveList")
     @SysLog("跳转到请假流程列表")
@@ -112,7 +108,7 @@ public class UserLeaveController {
     @PostMapping(value = "addLeave")
     @ResponseBody
     @SysLog("新建请假申请")
-    public RestResponse addLeave(LeaveApply leaveApply) throws ParseException {
+    public RestResponse addLeave(LeaveApply leaveApply) {
 
         AuthRealm.ShiroUser user = CommonUtil.getUser();
         String userId = user.getNickName();
@@ -127,7 +123,7 @@ public class UserLeaveController {
             }
         }
         if (processDescList.size() > 0 && processDescList != null) {
-            dataProcess(processDescList);
+            dataProcess(processDescList, userId);
         }
         // variables.put("applyUserId", userId);
 
@@ -140,94 +136,6 @@ public class UserLeaveController {
         return RestResponse.success();
     }
 
-    /**
-     * 发送待办信息
-     *
-     * @param processInstanceId
-     */
-    public void sendTaskInfo(String processInstanceId) {
-        //获取所有任务节点封装到集合中
-        List<String> userTasks = Lists.newArrayList();
-
-        Set<Map.Entry<String, Object>> entries = variables.entrySet();
-
-        //根据任务id获取当前任务
-        List<Task> taskList = taskService.createTaskQuery().processInstanceId(processInstanceId).list();
-        //根据当前任务获取当前流程的流程定义,然后根据流程定义获取所有节点
-        for (Task task : taskList) {
-            ProcessDefinitionEntity def = (ProcessDefinitionEntity) ((RepositoryServiceImpl) repositoryService)
-                    .getDeployedProcessDefinition(task.getProcessDefinitionId());
-
-            List<ActivityImpl> activityList = def.getActivities();
-            //根据当前任务获取当前流程的执行id,执行实例,以及当前流程节点的ID
-            String executionId = task.getExecutionId();
-            ExecutionEntity executionEntity = (ExecutionEntity) runtimeService.
-                    createExecutionQuery().executionId(executionId).singleResult();
-
-            //当前流程的id
-            String activityId = executionEntity.getActivityId();
-
-            //当前任务节点名称
-            String currentTaskName = task.getName();
-
-            for (ActivityImpl activity : activityList) {
-
-                if ("userTask".equals(activity.getProperty("type"))) {
-                    userTasks.add((String) activity.getProperty("name"));
-                }
-            }
-            //遍历所有任务节点
-            Fool:
-            for (TaskData taskData : taskDataList) {
-
-                if (currentTaskName.equals(taskData.getPTaskName())) {
-                    for (Object userTask : userTasks) {
-                        if (currentTaskName.equals(userTask)) {
-
-                            for (Map.Entry<String, Object> entry : entries) {
-                                if (entry.getKey().equals(taskData.getPValue())) {
-                                    //就是流程发起人
-                                    List<User> users = userService.findUserByNickName((String) entry.getValue());
-                                    for (User user : users) {
-                                        //发送通知
-                                        TaskToInform taskToInform = new TaskToInform();
-                                        taskToInform.setCreateDate(new Date());
-                                        taskToInform.setUserId(user.getId());
-                                        taskToInform.setTaskInfo("这是流程发起人");
-                                        taskToInform.setUserNickName(user.getNickName());
-                                        taskToInform.setProcessInstanceId(processInstanceId);
-                                        taskInformService.add(taskToInform);
-                                    }
-
-                                } else if (entry.getKey().equals(taskData.getPKey())) {
-
-                                    //其他任务
-                                    String[] users = entry.getValue().toString().split(",");
-                                    for (String user : users) {
-                                        //发送通知
-                                        List<User> userList = userService.findUserByNickName(user);
-                                        for (User user1 : userList) {
-                                            TaskToInform taskToInform = new TaskToInform();
-                                            taskToInform.setCreateDate(new Date());
-                                            taskToInform.setUserId(user1.getId());
-                                            taskToInform.setTaskInfo("经理审批");
-                                            taskToInform.setUserNickName(user1.getNickName());
-                                            taskToInform.setProcessInstanceId(processInstanceId);
-                                            taskInformService.add(taskToInform);
-                                        }
-
-                                    }
-                                    break Fool;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-    }
-
 
     @PostMapping("/showLeaveList")
     @ResponseBody
@@ -238,7 +146,7 @@ public class UserLeaveController {
         AuthRealm.ShiroUser currentUser = CommonUtil.getUser();
         String userId = currentUser.getNickName();
         ProcessInstanceQuery processInstanceQuery = runtimeService.createProcessInstanceQuery();
-        List<ProcessInstance> processInstances = processInstanceQuery.processDefinitionKey("leave").list();
+        List<ProcessInstance> processInstances = processInstanceQuery.processDefinitionKey("leave").listPage(limit * (page - 1), limit);
         List<LeaveApply> leaveApplys = new ArrayList<>();
         if (processInstances.size() > 0 && processInstances != null) {
             for (ProcessInstance instance : processInstances) {
@@ -377,7 +285,7 @@ public class UserLeaveController {
      *
      * @param list
      */
-    public void dataProcess(List<String> list) {
+    public void dataProcess(List<String> list, String currentUser) {
 
         if (list.size() > 0 && list != null) {
             for (String s : list) {
@@ -407,6 +315,8 @@ public class UserLeaveController {
                 }
                 String hrUser = sb.substring(0, sb.length() - 1);
                 variables.put(taskData.getPKey(), hrUser);
+            } else if (taskData.getPType().equals("申请人")) {
+                variables.put(taskData.getPKey(), currentUser);
             }
 
         }
@@ -426,6 +336,7 @@ public class UserLeaveController {
     @ResponseBody
     public LayerData<LeaveApply> myTodoTasks(@RequestParam(value = "page") int page,
                                              @RequestParam(value = "limit") int limit) {
+
 
         LayerData<LeaveApply> layerData = new LayerData<>();
 
@@ -485,10 +396,11 @@ public class UserLeaveController {
             }
         }
 
-        //审批信息叠加
-        List<LeaveOpinion> leaveList = Lists.newArrayList();
-        leaveList.add(leaveOpinion);
-        //签收任务
+        leaveOptionFlag.put(leaveOpinion.getTaskId(), leaveOpinion.isFlag());
+
+        Authentication.setAuthenticatedUserId(user.nickName);
+        taskService.addComment(leaveOpinion.getTaskId(), leaveOpinion.getProcessInstanceId(), leaveOpinion.getOpinion());
+        //签收/办理任务
         taskService.claim(leaveOpinion.getTaskId(), user.getNickName());
         taskService.complete(leaveOpinion.getTaskId(), variables);
 
@@ -497,40 +409,54 @@ public class UserLeaveController {
         //发送待办信息
         sendTaskInfo(leaveOpinion.getProcessInstanceId());
 
-        return RestResponse.success("审核成功" + (leaveOpinion.isFlag() ? "<font style='color:green'>[通过]</font>" : "<font style='color:red'>[未通过]</font>"));
+        return RestResponse.success();
     }
 
     @GetMapping("/leaveDetail")
     @SysLog("任务详情")
     public String leaveDetail(Model model, String processId) {
 
+        List<ActComment> list = Lists.newArrayList();
+
         ProcessInstance processInstance = runtimeService.createProcessInstanceQuery()
                 .processInstanceId(processId).singleResult();
+
+        Set<Map.Entry<String, Object>> entries = leaveOptionFlag.entrySet();
+
         //保证流程在运行
-        List<LeaveOpinion> leaveOpinions = null;
-        List<HistoricActivityInstance> historicActivityInstanceList = new ArrayList<>();
+
         if (processInstance != null) {
-            List<HistoricTaskInstance> list = historyService.createHistoricTaskInstanceQuery()
-                    .processInstanceId(processId).list();
-            if (list != null && list.size() > 0) {
-                for (HistoricTaskInstance instance : list) {
-                    System.out.println(instance.getId() + "           " + instance.getName() + "      " + instance.getClaimTime());
+
+            List<HistoricActivityInstance> instances = historyService.createHistoricActivityInstanceQuery().processInstanceId(processId).activityType("userTask").list();
+
+            for (HistoricActivityInstance instance : instances) {
+                String taskId = instance.getTaskId();
+                List<Comment> taskComments = taskService.getTaskComments(taskId);
+                for (Comment taskComment : taskComments) {
+                    for (Map.Entry<String, Object> entry : entries) {
+                        if (entry.getKey().equals(taskId)) {
+                            ActComment actComment = new ActComment();
+                            actComment.setCName(taskComment.getUserId());
+                            actComment.setCreated(taskComment.getTime());
+                            actComment.setFlag((Boolean) entry.getValue());
+                            actComment.setMessage(taskComment.getFullMessage());
+                            actComment.setTaskId(taskId);
+                            list.add(actComment);
+                        }
+                    }
                 }
-
             }
-
-
         }
 
-        model.addAttribute("leaveDetail", JSON.toJSONString(leaveOpinions));
+        model.addAttribute("leaveDetail", JSON.toJSONString(list));
         return "/activiti/leave/leaveDetail";
     }
 
     @GetMapping("myProcess")
     @SysLog("跳转到我参与的流程列表")
-    public String myParticipateProcess() {
+    public ModelAndView myParticipateProcess() {
 
-        return "activiti/particpate/list";
+        return new ModelAndView("/activiti/participate/list");
     }
 
     @PostMapping("/myParticipateProcess")
@@ -559,4 +485,77 @@ public class UserLeaveController {
         layerData.setData(runningProcessList);
         return layerData;
     }
+
+    /**
+     * @param processInstanceId
+     */
+    public void sendTaskInfo(String processInstanceId) {
+        //获取所有任务节点封装到集合中
+        List<String> userTasks = Lists.newArrayList();
+
+        Set<Map.Entry<String, Object>> entries = variables.entrySet();
+
+        //根据任务id获取当前任务
+        List<Task> taskList = taskService.createTaskQuery().processInstanceId(processInstanceId).list();
+        //根据当前任务获取当前流程的流程定义,然后根据流程定义获取所有节点
+        for (Task task : taskList) {
+            ProcessDefinitionEntity def = (ProcessDefinitionEntity) ((RepositoryServiceImpl) repositoryService)
+                    .getDeployedProcessDefinition(task.getProcessDefinitionId());
+
+            List<ActivityImpl> activityList = def.getActivities();
+            //根据当前任务获取当前流程的执行id,执行实例,以及当前流程节点的ID
+            String executionId = task.getExecutionId();
+            ExecutionEntity executionEntity = (ExecutionEntity) runtimeService.
+                    createExecutionQuery().executionId(executionId).singleResult();
+
+            //当前流程的id
+            String activityId = executionEntity.getActivityId();
+
+            //当前任务节点名称
+            String currentTaskName = task.getName();
+
+            for (ActivityImpl activity : activityList) {
+
+                if ("userTask".equals(activity.getProperty("type"))) {
+                    userTasks.add((String) activity.getProperty("name"));
+                }
+            }
+            //遍历所有任务节点
+            Fool:
+            for (TaskData taskData : taskDataList) {
+
+                if (currentTaskName.equals(taskData.getPTaskName())) {
+                    for (Object userTask : userTasks) {
+                        if (currentTaskName.equals(userTask)) {
+
+                            for (Map.Entry<String, Object> entry : entries) {
+                                if (entry.getKey().equals(taskData.getPKey())) {
+                                    String[] split = entry.getValue().toString().split(",");
+                                    for (String s : split) {
+                                        List<Task> tasks = taskService.createTaskQuery().taskCandidateOrAssigned(s).list();
+                                        for (Task task1 : tasks) {
+                                            //插入待办信息
+                                            List<User> users = userService.findUserByNickName(s);
+                                            for (User user : users) {
+                                                TaskToInform taskToInform = new TaskToInform();
+                                                taskToInform.setTaskInfo(task1.getName());
+                                                taskToInform.setCreateDate(task1.getCreateTime());
+                                                taskToInform.setProcessInstanceId(task1.getProcessInstanceId());
+                                                taskToInform.setUserId(user.getId());
+                                                taskToInform.setUserNickName(user.getNickName());
+                                                taskInformService.add(taskToInform);
+                                            }
+
+                                        }
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 }

@@ -131,7 +131,7 @@ public class ActivitiController {
             return RestResponse.failure("参数错误");
         }
         try {
-            if (id.equals("")) {
+            if (id.equals("1")) {
                 return RestResponse.failure("通用请假流程不能删除");
             }
             repositoryService.deleteDeployment(id, true);
@@ -154,7 +154,7 @@ public class ActivitiController {
         }
         try {
             for (ActProcessDefinition processDefinition : processDefinitions) {
-                if (processDefinition.getDeploymentId().equals("")) {
+                if (processDefinition.getDeploymentId().equals("1")) {
                     return RestResponse.failure("通用请假流程不能删除");
                 }
                 repositoryService.deleteDeployment(processDefinition.getDeploymentId(), true);

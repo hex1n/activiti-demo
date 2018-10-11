@@ -25,7 +25,7 @@ spring:
 #日志
 logging:
   config: classpath:log/logback.xml
-  path: D:/mysiteforme/resource/log
+  path: D:/mysiteforme/log
   level:
     com.asuka.admin: info
 

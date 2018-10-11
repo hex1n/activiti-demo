@@ -1,5 +1,8 @@
 package com.asuka.admin;
 
+import com.asuka.admin.entity.TaskData;
+import com.asuka.admin.entity.TaskToInform;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.activiti.engine.*;
 import org.activiti.engine.history.HistoricActivityInstance;
@@ -8,10 +11,12 @@ import org.activiti.engine.identity.User;
 import org.activiti.engine.impl.RepositoryServiceImpl;
 import org.activiti.engine.impl.persistence.entity.ExecutionEntity;
 import org.activiti.engine.impl.persistence.entity.ProcessDefinitionEntity;
+import org.activiti.engine.impl.pvm.PvmTransition;
 import org.activiti.engine.impl.pvm.process.ActivityImpl;
 import org.activiti.engine.repository.Deployment;
 import org.activiti.engine.repository.ProcessDefinition;
 import org.activiti.engine.runtime.ProcessInstance;
+import org.activiti.engine.task.Comment;
 import org.activiti.engine.task.Task;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,10 +24,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Resource;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import static com.asuka.admin.controller.activiti.UserLeaveController.taskDataList;
 import static org.junit.Assert.assertNotNull;
 
 /**
@@ -148,7 +152,7 @@ public class PersonalTaskTest {
     @Test
     public void queryPersonalTask() {
 
-        String assignee = "王五";
+        String assignee = "iu";
         List<Task> taskList = taskService.createTaskQuery()
                 .taskAssignee(assignee)
                 .list();
@@ -173,9 +177,9 @@ public class PersonalTaskTest {
      */
     @Test
     public void find() {
-        String candidateUser = "t2--02";
+        String candidateUser = "aaa ";
         List<Task> taskList = taskService.createTaskQuery()
-                .taskCandidateUser(candidateUser)
+                .taskCandidateOrAssigned(candidateUser)
                 .list();
         if (taskList.size() > 0 && taskList != null) {
 
@@ -201,9 +205,9 @@ public class PersonalTaskTest {
     public void claimTask() {
 
         //任务id
-        String taskId = "325012";
+        String taskId = "172505";
         //办理人
-        String userId = "张三";
+        String userId = "iu";
         taskService.claim(taskId, userId);
         System.out.println(userId + "  签收了组任务");
 
@@ -219,7 +223,7 @@ public class PersonalTaskTest {
     public void dealPersonalTask() {
 
         //定义任务ID
-        String taskId = "310012";
+        String taskId = "lishi";
         String processDefinitionKey = "leave";
         //定义人事办理人
 //        String hrName = "张三";
@@ -246,7 +250,7 @@ public class PersonalTaskTest {
 //            variables.put(split1[0], split1[1]);
 //        }
 //        variables.put("deptLeaderApproved","true");
-        variables.put("hrApprove", "true");
+        variables.put("reportApprove", "true");
         taskService.complete(taskId, variables);
     }
 
@@ -336,7 +340,9 @@ public class PersonalTaskTest {
     @Test
     public void test001() {
 
-        String processInstanceId = "112501";
+        String processInstanceId = "197501";
+
+        String conditionText = null;
 
         //根据任务id获取当前任务
         List<Task> taskList = taskService.createTaskQuery().processInstanceId(processInstanceId).list();
@@ -364,22 +370,136 @@ public class PersonalTaskTest {
                     //输出某个节点的某种属性
                     System.out.println("当前任务:" + activity.getProperty("name"));
                     //获取从某个节点出来的所有线路
-                    // List<PvmTransition> outgoingTransitions = activity.getOutgoingTransitions();
-                    // for (PvmTransition transition : outgoingTransitions) {
-                    //     //获得线路的终节点
-                    //     PvmActivity destination = transition.getDestination();
-                    //     System.out.println("下一步任务:" + destination.getProperty("name") + "====" + destination.getProperty("type"));
-                    // }
-                } else if ("userTask".equals(activity.getProperty("type"))) {
 
+
+                    List<PvmTransition> outgoingTransitions = activity.getOutgoingTransitions();
+
+                    conditionText = (String) outgoingTransitions.get(0).getProperty("conditionText");
+                    //获取到当前任务节点的下一个
+                    conditionText = conditionText.substring(2, conditionText.indexOf("="));
+                    System.out.println(conditionText);
+                }/* else if ("userTask".equals(activity.getProperty("type"))) {
 
                     System.out.println("下一步任务:" + activity.getProperty("name"));
 
-                    break;
+                    //如果当前任务节点是网关
+                } else if ("exclusiveGateway".equals(activity.getProperty("type"))) {
+                    List<PvmTransition> outgoingTransitions = activity.getOutgoingTransitions();
+
+                    conditionText = (String) outgoingTransitions.get(0).getProperty("conditionText");
+                    //获取到当前任务节点的下一个
+                    conditionText = conditionText.substring(2, conditionText.indexOf("="));*/
+
+
+                  /*  for (PvmTransition outgoingTransition : outgoingTransitions) {
+                        //获取到网关设置条件
+                        conditionText = (String) outgoingTransition.getProperty("conditionText");
+                        conditionText.substring(2, conditionText.indexOf("="));
+                        break;
+
+                    }*/
+                // }
+            }
+        }
+    }
+
+    @Test
+    public void test11111() {
+        String str = "${tlcondition==\"true\"}";
+
+        System.out.println(str.substring(2, str.indexOf("=")));
+    }
+
+
+    /**
+     * 任务批注信息查询
+     */
+    @Test
+    public void test991() {
+        List<Comment> list = new ArrayList<>();
+        Task task = this.taskService.createTaskQuery().taskId("170144").singleResult();
+        ProcessInstance pi = runtimeService.createProcessInstanceQuery().processInstanceId("170113").singleResult();
+        List<HistoricActivityInstance> instanceList = historyService.createHistoricActivityInstanceQuery().processInstanceId("170113").activityType("userTask").list();
+
+        for (HistoricActivityInstance instance : instanceList) {
+            String taskId = instance.getTaskId();
+            List<Comment> taskComments = taskService.getTaskComments(taskId);
+            if (taskComments != null && taskComments.size() > 0) {
+                list.addAll(taskComments);
+            }
+        }
+
+        for (Comment comment : list) {
+            System.out.println(comment.getId() + "   " + comment.getProcessInstanceId() + "     " + comment.getTime() + "     " + comment.getFullMessage());
+        }
+
+
+    }
+
+    public void sendTaskInfo(String processInstanceId) {
+        //获取所有任务节点封装到集合中
+        List<String> userTasks = Lists.newArrayList();
+
+        Set<Map.Entry<String, Object>> entries = variables.entrySet();
+
+        //根据任务id获取当前任务
+        List<Task> taskList = taskService.createTaskQuery().processInstanceId(processInstanceId).list();
+        //根据当前任务获取当前流程的流程定义,然后根据流程定义获取所有节点
+        for (Task task : taskList) {
+            ProcessDefinitionEntity def = (ProcessDefinitionEntity) ((RepositoryServiceImpl) repositoryService)
+                    .getDeployedProcessDefinition(task.getProcessDefinitionId());
+
+            List<ActivityImpl> activityList = def.getActivities();
+            //根据当前任务获取当前流程的执行id,执行实例,以及当前流程节点的ID
+            String executionId = task.getExecutionId();
+            ExecutionEntity executionEntity = (ExecutionEntity) runtimeService.
+                    createExecutionQuery().executionId(executionId).singleResult();
+
+            //当前流程的id
+            String activityId = executionEntity.getActivityId();
+
+            //当前任务节点名称
+            String currentTaskName = task.getName();
+
+            for (ActivityImpl activity : activityList) {
+
+                if ("userTask".equals(activity.getProperty("type"))) {
+                    userTasks.add((String) activity.getProperty("name"));
+                }
+            }
+            //遍历所有任务节点
+            Fool:
+            for (TaskData taskData : taskDataList) {
+
+                if (currentTaskName.equals(taskData.getPTaskName())) {
+                    for (Object userTask : userTasks) {
+                        if (currentTaskName.equals(userTask)) {
+
+                            for (Map.Entry<String, Object> entry : entries) {
+                                if (entry.getKey().equals(taskData.getPKey())) {
+                                    //就是流程发起人
+                                    String[] split = entry.getValue().toString().split(",");
+                                    for (String s : split) {
+                                        List<Task> tasks = taskService.createTaskQuery().taskCandidateOrAssigned(s).list();
+                                        for (Task task1 : tasks) {
+                                            //插入待办信息
+                                            TaskToInform taskToInform = new TaskToInform();
+                                            taskToInform.setTaskInfo(task.getName());
+                                            taskToInform.setCreateDate(task.getCreateTime());
+                                            taskToInform.setProcessInstanceId("");
+                                            // taskToInform.setUserId(user.getId());
+                                            // taskInformService.add(taskToInform);
+                                        }
+                                    }
+                                }
+
+                            }
+                        }
+                    }
                 }
             }
         }
     }
 
-
 }
+

@@ -1,9 +1,3 @@
-<#-- Created by IntelliJ IDEA.
- User: zxm
- Date: 2018/1/15
- Time: 16:53
- To change this template use File | Settings | File Templates.
-流程部署-->
 <!DOCTYPE html>
 <html>
 <head>
@@ -11,8 +5,6 @@
     <title>我的任务</title>
     <meta name="renderer" content="webkit">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <meta name="viewport"
-          content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8,target-densitydpi=low-dpi"/>
     <link rel="stylesheet" href="${base}/static/layui/css/layui.css">
     <link rel="stylesheet" href="${base}/static/lenosp/ztree/css/metroStyle/metroStyle.css">
     <script type="text/javascript" src="${base}/static/lenosp/jquery.min.js"></script>

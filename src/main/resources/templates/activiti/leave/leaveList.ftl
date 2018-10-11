@@ -87,7 +87,7 @@
             },
             // width: $(parent.window).width()-223,
             cols: [[
-                {type: 'checkbox'},
+                // {type: 'checkbox'},
                 {field: 'userId', title: '申请人', width: '10%'},
                 {field: 'beginTime', title: '开始时间', width: '10%'},
                 {field: 'endTime', title: '结束时间', width: '15%'},

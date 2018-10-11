@@ -5,8 +5,6 @@
     <title>请假审批详情</title>
     <meta name="renderer" content="webkit">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-    <meta name="viewport"
-          content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8,target-densitydpi=low-dpi"/>
     <link rel="stylesheet" href="${base}/static/layui/css/layui.css">
     <link rel="stylesheet" href="${base}/static/lenosp/ztree/css/metroStyle/metroStyle.css">
     <script type="text/javascript" src="${base}/static/lenosp/jquery.min.js"></script>
@@ -84,10 +82,10 @@
             , data: ${leaveDetail}
             , cols: [[
                 {field: 'taskId', title: '任务编码', width: '20%'}
-                , {field: 'opName', title: '审批人', width: '20%'}
-                , {field: 'opinion', title: '审批信息', width: '30%'}
+                , {field: 'cName', title: '审批人', width: '20%'}
+                , {field: 'message', title: '审批信息', width: '30%'}
                 , {
-                    field: 'createTime',
+                    field: 'created',
                     title: '审批时间',
                     width: '20%',
                     templet: '<div>{{ layui.laytpl.toDateString(d.beginTime,"yyyy-MM-dd") }}</div>'

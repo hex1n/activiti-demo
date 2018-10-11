@@ -1,9 +1,3 @@
-<#--Created by IntelliJ IDEA.
-User: zxm
-Date: 2017/12/20
-Time: 10:00
-To change this template use File | Settings | File Templates.-->
-
 <!DOCTYPE html>
 <html>
 
@@ -150,7 +144,7 @@ To change this template use File | Settings | File Templates.-->
                 data: data.field,
                 async: false, traditional: true,
                 success: function (d) {
-                    layer.msg("申请成功", {icon: 2}, function () {
+                    layer.msg("申请成功", {icon: 1}, function () {
                         parent.location.href = "/leave/showLeaveList";
                     });
                 }, error: function () {
