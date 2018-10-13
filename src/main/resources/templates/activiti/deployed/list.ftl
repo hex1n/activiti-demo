@@ -90,25 +90,14 @@
         //监听工具条
         table.on('tool(demo)', function (obj) {
             var data = obj.data;
-            /*   if (obj.event === 'edit') {
-                   var editIndex = layer.open({
-                       title: "编辑用户",
-                       type: 2,
-                       content: "/admin/system/user/edit?id=" + data.id,
-                       success: function (layero, index) {
-                           setTimeout(function () {
-                               layer.tips('点击此处返回会员列表', '.layui-layer-setwin .layui-layer-close', {
-                                   tips: 3
-                               });
-                           }, 500);
-                       }
-                   });
+               if (obj.event === 'edit') {
+                   window.open("/static/modeler.html?modelId=" + data.id)
                    //改变窗口大小时，重置弹窗的高度，防止超出可视区域（如F12调出debug的操作）
                    $(window).resize(function () {
                        layer.full(editIndex);
                    });
                    layer.full(editIndex);
-               }*/
+               }
             if (obj.event === "del") {
                 layer.confirm("你确定要删除该流程么？", {btn: ['是的,我确定', '我再想想']},
                         function () {
@@ -151,12 +140,12 @@
         var active = {
             addUser: function () {
                 var addIndex = layer.open({
-                    title: "添加会员",
+                    title: "添加用户",
                     type: 2,
                     content: "${base}/admin/system/user/add",
                     success: function (layero, addIndex) {
                         setTimeout(function () {
-                            layer.tips('点击此处返回会员列表', '.layui-layer-setwin .layui-layer-close', {
+                            layer.tips('点击此处返回用户列表', '.layui-layer-setwin .layui-layer-close', {
                                 tips: 3
                             });
                         }, 500);
@@ -222,7 +211,7 @@
 
         upload.render({
             elem: '#uploadTest',
-            url: '/act/upload-process',
+            url: '/act/upload-process?flag='+true,
             accept: 'file',
             exts: 'zip|rar|bar|bpmn|bpmn20.xml',
             done: function (res) {

@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-package com.asuka.admin.org.act.rest.diagram.services;
+package com.asuka.admin.org.activiti.rest.diagram.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;

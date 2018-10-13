@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.asuka.admin.dao.ActTaskLogDao">
+    <select id="get" resultType="com.asuka.admin.entity.act.LeaveApply" parameterType="int">
+		select * from leave_apply where id=#{id}
+	</select>
+    <select id="selectListByPage" resultType="com.asuka.admin.entity.act.LeaveApply">
+
+		 SELECT *
+        from leave_apply
+	</select>
+    <select id="findLeaveByProcessInstanceId" resultType="com.asuka.admin.entity.act.LeaveApply">
+
+		select * from leave_apply where process_instance_id=#{processInstanceId}
+
+	</select>
+	<select id="selectAll" resultType="com.asuka.admin.entity.act.ActTaskLog">
+
+		select * from act_task_log
+	</select>
+	<insert id="saveActTaskLog" useGeneratedKeys="true" keyProperty="id"
+            parameterType="com.asuka.admin.entity.act.ActTaskLog">
+	  insert into act_task_log (id,bus_id,process_instance_id,task_name,transactor,transactor_id,created,app_opinion,app_action)
+	  values (#{id},#{busId},#{processInstanceId},#{taskName},#{transactor},#{transactorId},#{createTime},#{appOpinion},#{appAction})
+	</insert>
+    <update id="update" parameterType="com.asuka.admin.entity.act.LeaveApply">
+		update leave_apply set process_instance_id =#{processInstanceId}
+		where id=#{id}
+	</update>
+</mapper>

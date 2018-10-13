@@ -96,8 +96,7 @@
     </select>
     <select id="findUserByNickName" resultType="com.asuka.admin.entity.User">
 
-    select su.* ,sr.name FROM sys_user su LEFT join sys_user_role sur on su.id=sur.user_id
-     LEFT JOIN sys_role sr on sr.id= sur.role_id WHERE su.nick_name=#{nickName}
+   SELECT * FROM `sys_user` su WHERE su.nick_name=#{nickName}
 
     </select>
 

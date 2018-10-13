@@ -11,7 +11,10 @@ import com.asuka.admin.entity.act.LeaveApply;
 import com.asuka.admin.entity.act.LeaveOpinion;
 import com.asuka.admin.entity.act.RunningProcess;
 import com.asuka.admin.realm.AuthRealm;
-import com.asuka.admin.service.*;
+import com.asuka.admin.service.LeaveService;
+import com.asuka.admin.service.RoleService;
+import com.asuka.admin.service.TaskInformService;
+import com.asuka.admin.service.UserService;
 import com.asuka.admin.util.CommonUtil;
 import com.asuka.admin.util.LayerData;
 import com.asuka.admin.util.RestResponse;
@@ -114,7 +117,7 @@ public class UserLeaveController {
         String userId = user.getNickName();
         ArrayList<String> processDescList = new ArrayList<>();
         //获取所有流程定义
-        List<ProcessDefinition> processDefinitions = repositoryService.createProcessDefinitionQuery().processDefinitionKey("leave").list();
+        List<ProcessDefinition> processDefinitions = repositoryService.createProcessDefinitionQuery().processDefinitionKey("myLeaveProcess").list();
         if (processDefinitions.size() > 0 && processDefinitions != null) {
             for (ProcessDefinition definition : processDefinitions) {
                 if (definition.getDescription() != null) {
@@ -146,7 +149,7 @@ public class UserLeaveController {
         AuthRealm.ShiroUser currentUser = CommonUtil.getUser();
         String userId = currentUser.getNickName();
         ProcessInstanceQuery processInstanceQuery = runtimeService.createProcessInstanceQuery();
-        List<ProcessInstance> processInstances = processInstanceQuery.processDefinitionKey("leave").listPage(limit * (page - 1), limit);
+        List<ProcessInstance> processInstances = processInstanceQuery.processDefinitionKey("myLeaveProcess").listPage(limit * (page - 1), limit);
         List<LeaveApply> leaveApplys = new ArrayList<>();
         if (processInstances.size() > 0 && processInstances != null) {
             for (ProcessInstance instance : processInstances) {
@@ -366,14 +369,15 @@ public class UserLeaveController {
         map.put("taskId", task.getId());
         map.put("leave", leaveApply);
         map.put("processInstanceId", processInstanceId);
-
+        // map.put("initInfo",)
 
         return new ModelAndView("/activiti/task/task-agent", map);
     }
 
 
-    @PostMapping("/complete")
+    @GetMapping("/complete")
     @SysLog("办理任务")
+    @ResponseBody
     public RestResponse completeTask(LeaveOpinion leaveOpinion) {
 
 
@@ -469,7 +473,7 @@ public class UserLeaveController {
         String userId = currentUser.getNickName();
 
         ProcessInstanceQuery processInstanceQuery = runtimeService.createProcessInstanceQuery();
-        List<ProcessInstance> processInstances = processInstanceQuery.processDefinitionKey("leave").involvedUser(userId).listPage((page - 1) * limit, limit);
+        List<ProcessInstance> processInstances = processInstanceQuery.processDefinitionKey("myLeaveProcess").involvedUser(userId).listPage((page - 1) * limit, limit);
         List<RunningProcess> runningProcessList = Lists.newArrayList();
         for (ProcessInstance instance : processInstances) {
             RunningProcess process = new RunningProcess();
@@ -492,7 +496,6 @@ public class UserLeaveController {
     public void sendTaskInfo(String processInstanceId) {
         //获取所有任务节点封装到集合中
         List<String> userTasks = Lists.newArrayList();
-
         Set<Map.Entry<String, Object>> entries = variables.entrySet();
 
         //根据任务id获取当前任务
@@ -521,7 +524,7 @@ public class UserLeaveController {
                 }
             }
             //遍历所有任务节点
-            Fool:
+            fool:
             for (TaskData taskData : taskDataList) {
 
                 if (currentTaskName.equals(taskData.getPTaskName())) {
@@ -531,31 +534,26 @@ public class UserLeaveController {
                             for (Map.Entry<String, Object> entry : entries) {
                                 if (entry.getKey().equals(taskData.getPKey())) {
                                     String[] split = entry.getValue().toString().split(",");
-                                    for (String s : split) {
-                                        List<Task> tasks = taskService.createTaskQuery().taskCandidateOrAssigned(s).list();
-                                        for (Task task1 : tasks) {
-                                            //插入待办信息
-                                            List<User> users = userService.findUserByNickName(s);
-                                            for (User user : users) {
-                                                TaskToInform taskToInform = new TaskToInform();
-                                                taskToInform.setTaskInfo(task1.getName());
-                                                taskToInform.setCreateDate(task1.getCreateTime());
-                                                taskToInform.setProcessInstanceId(task1.getProcessInstanceId());
-                                                taskToInform.setUserId(user.getId());
-                                                taskToInform.setUserNickName(user.getNickName());
-                                                taskInformService.add(taskToInform);
-                                            }
-
-                                        }
+                                    for (String userName : split) {
+                                        //插入待办信息
+                                        User user = userService.findUserByNickName(userName);
+                                        TaskToInform taskToInform = new TaskToInform();
+                                        taskToInform.setTaskInfo(task.getName());
+                                        taskToInform.setCreateDate(task.getCreateTime());
+                                        taskToInform.setProcessInstanceId(task.getProcessInstanceId());
+                                        taskToInform.setUserId(user.getId());
+                                        taskToInform.setUserNickName(user.getNickName());
+                                        taskInformService.add(taskToInform);
                                     }
+                                    break fool;
                                 }
-
                             }
                         }
+
                     }
                 }
             }
         }
     }
-
 }
+

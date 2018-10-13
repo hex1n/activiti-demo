@@ -501,5 +501,18 @@ public class PersonalTaskTest {
         }
     }
 
+    @Test
+    public void test1() {
+        String taskId = "10017";
+
+        Map<String, Object> maps = taskService.getVariables(taskId);
+        Set<Map.Entry<String, Object>> entries = maps.entrySet();
+        for (Map.Entry<String, Object> entry : entries) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            System.out.println(key + "        " + value);
+        }
+    }
+
 }
 

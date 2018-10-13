@@ -38,5 +38,5 @@ public interface UserService extends IService<User> {
 
     List<String> findUserRoleNameById(Long id);
 
-    List<User> findUserByNickName(String taskUser);
+    User findUserByNickName(String taskUser);
 }

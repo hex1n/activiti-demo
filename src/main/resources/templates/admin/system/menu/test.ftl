@@ -163,7 +163,7 @@
             content : "${base}/admin/system/menu/edit?id="+data,
             success : function(layero, index){
                 setTimeout(function(){
-                    layer.tips('点击此处返回会员列表', '.layui-layer-setwin .layui-layer-close', {
+                    layer.tips('点击此处返回用户列表', '.layui-layer-setwin .layui-layer-close', {
                         tips: 3
                     });
                 },500);

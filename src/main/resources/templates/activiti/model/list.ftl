@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>已部署流程列表</title>
+    <title>模型列表</title>
     <meta name="renderer" content="webkit">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -36,6 +36,7 @@
             <div class="layui-inline">
                 <a class="layui-btn layui-btn-danger" data-type="addModel">新建模型</a>
             </div>
+
         </form>
     </div>
 </fieldset>
@@ -178,7 +179,6 @@
         })
         return false;
     });
-
 
 </script>
 </body>

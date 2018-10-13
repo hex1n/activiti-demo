@@ -160,7 +160,7 @@
                     maxmin: true,
                     shadeClose: false,
                     shade: 0.4,
-                    title: '审核详情',
+                    title: '流程详情',
                     content: "leaveDetail?processId=" + data.processInstanceId
                 });
             }

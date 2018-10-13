@@ -1,6 +1,8 @@
 package com.asuka.admin.service.impl;
 
+import com.asuka.admin.dao.ActTaskLogDao;
 import com.asuka.admin.dao.LeaveDao;
+import com.asuka.admin.entity.act.ActTaskLog;
 import com.asuka.admin.entity.act.LeaveApply;
 import com.asuka.admin.service.LeaveService;
 import com.baomidou.mybatisplus.service.impl.ServiceImpl;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -30,6 +33,9 @@ public class LeaveServiceImpl extends ServiceImpl<LeaveDao, LeaveApply> implemen
 
     @Autowired
     private RuntimeService runtimeService;
+
+    @Resource
+    private ActTaskLogDao actTaskLogDao;
 
     @Override
     public ProcessInstance startProcess(LeaveApply leaveApply, String userId, Map<String, Object> variables) {
@@ -52,11 +58,19 @@ public class LeaveServiceImpl extends ServiceImpl<LeaveDao, LeaveApply> implemen
             String businessKey = String.valueOf(leaveApply.getId());
 
             identityService.setAuthenticatedUserId(userId);
-            processInstance = runtimeService.startProcessInstanceByKey("leave", businessKey, variables);
+            processInstance = runtimeService.startProcessInstanceByKey("myLeaveProcess", businessKey, variables);
             System.out.println(businessKey);
             String instanceId = processInstance.getId();
             leaveApply.setProcessInstanceId(instanceId);
             leaveDao.update(leaveApply);
+
+            ActTaskLog actTaskLog = new ActTaskLog();
+            actTaskLog.setTaskName("提交申请");
+            actTaskLog.setBusId(businessKey);
+            actTaskLog.setCreateTime(new Date());
+            actTaskLog.setProcessInstanceId(leaveApply.getProcessInstanceId());
+
+            actTaskLogDao.saveActTaskLog(actTaskLog);
 
         } catch (Exception e) {
             e.printStackTrace();

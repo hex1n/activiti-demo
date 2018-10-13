@@ -152,7 +152,7 @@
                 layer.open({
                     id: 'leave-task',
                     type: 2,
-                    area: ['990px', '600px'],
+                    area: ['100%', '100%'],
                     fix: false,
                     maxmin: true,
                     shadeClose: false,

@@ -1,8 +1,3 @@
-<#--Created by IntelliJ IDEA.
-User: zxm
-Date: 2017/12/20
-Time: 10:00
-To change this template use File | Settings | File Templates.-->
 
 <!DOCTYPE html>
 <html>

@@ -14,7 +14,6 @@ import java.util.List;
 @Mapper
 public interface TaskInformDao extends BaseMapper<TaskToInform> {
 
-//    void add(TaskToInform taskToInform);
 
     void delByUserId(long userId);
 

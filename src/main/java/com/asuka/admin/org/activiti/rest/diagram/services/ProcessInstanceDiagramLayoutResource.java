@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-package com.asuka.admin.org.act.rest.diagram.services;
+package com.asuka.admin.org.activiti.rest.diagram.services;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.activiti.rest.diagram.services.BaseProcessDefinitionDiagramLayoutResource;
@@ -21,11 +21,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class ProcessDefinitionDiagramLayoutResource extends
-    BaseProcessDefinitionDiagramLayoutResource {
+public class ProcessInstanceDiagramLayoutResource extends BaseProcessDefinitionDiagramLayoutResource {
 
-  @RequestMapping(value="/process-definition/{processDefinitionId}/diagram-layout", method = RequestMethod.GET, produces = "application/json")
-  public ObjectNode getDiagram(@PathVariable String processDefinitionId) {
-    return getDiagramNode(null, processDefinitionId);
+  @RequestMapping(value="/process-instance/{processInstanceId}/diagram-layout", method = RequestMethod.GET, produces = "application/json")
+  public ObjectNode getDiagram(@PathVariable String processInstanceId) {
+    return getDiagramNode(processInstanceId, null);
   }
 }

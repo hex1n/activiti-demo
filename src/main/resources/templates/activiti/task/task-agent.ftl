@@ -16,9 +16,9 @@
 </head>
 
 <body>
-<div class="x-body">
+<div style="padding: 20px">
     <form class="layui-form layui-form-pane" style="margin-left: 20px;">
-        <div style="width:98%;height:450px;overflow: auto;">
+        <div style="width:100%;height:100%;overflow: auto;">
             <div class="layui-form-item">
                 <fieldset class="layui-elem-field layui-field-title" style="margin-top: 10px;">
                     <legend style="font-size:16px;">请假信息</legend>
@@ -50,6 +50,13 @@
                     <textarea class="layui-textarea" readonly>${leave.reason}</textarea>
                 </div>
             </div>
+
+        <#--流程图片-->
+            <div style="width: 725px;height: 300px">
+                <img src="/leave/getShineProcImage?id=${processInstanceId}">
+            </div>
+
+
             <div class="layui-form-item layui-form-text">
                 <label class="layui-form-label">审批意见</label>
                 <div class="layui-input-block">
@@ -62,10 +69,10 @@
             <div class="layui-form-item" style=" float: right;margin-right: 10px;margin-top: 8px">
                 <input name="flag" type="hidden">
                 <button class="layui-btn layui-btn-normal" lay-filter="ok" lay-submit>
-                    通过
+                    同意
                 </button>
                 <button class="layui-btn layui-btn-normal" lay-filter="no" lay-submit>
-                    不通过
+                    不同意
                 </button>
                 <button class="layui-btn layui-btn-primary" data-type="close">
                     取消
@@ -99,37 +106,44 @@
 
         form.on('submit(no)', function (data) {
             data.field.flag = false;
-            layerAjax('/leave/complete', data.field, 'taskList');
-           /* $.ajax({
-                url: '/complete',
-                data: data.field,
-                type: 'post',
-                success: function (re) {
-                    layer.alert("审核成功" + (data.field.flag ? "<font style='color:green'>[通过]</font>" : "<font style='color:red'>[未通过]</font>"))
-                },
-                error: function (re) {
+            // layerAjax('/leave/complete', data.field, 'taskList');
+             $.ajax({
+                 url: '/leave/complete',
+                 data: data.field,
+                 success: function (re) {
+                     layer.alert("审核成功" + (data.field.flag ? "<font style='color:green'>[通过]</font>" : "<font style='color:red'>[未通过]</font>"),function () {
+                         var index = parent.layer.getFrameIndex(window.name);
+                         parent.layer.close(index);
+                         window.parent.layui.table.reload('taskList');
+                     })
+                 },
+                 error: function (re) {
 
-                    layer.alert("办理失败");
-                }
-            })*/
+                     layer.alert("办理失败");
+                 }
+             })
             return false;
         });
 
         form.on('submit(ok)', function (data) {
             data.field.flag = true;
-            layerAjax('/leave/complete',data.field,'taskList');
+            // layerAjax('/leave/complete', data.field, 'taskList');
 
-           /* $.ajax({
+            $.ajax({
                 url: '/leave/complete',
                 data: data.field,
                 success: function (re) {
-                    layer.alert("审核成功" + (data.field.flag ? "<font style='color:green'>[通过]</font>" : "<font style='color:red'>[未通过]</font>"))
+                    layer.alert("审核成功" + (data.field.flag ? "<font style='color:green'>[通过]</font>" : "<font style='color:red'>[未通过]</font>"), function () {
+                        var index = parent.layer.getFrameIndex(window.name);
+                        parent.layer.close(index);
+                        window.parent.layui.table.reload('taskList');
+                    })
                 },
                 error: function (re) {
                     console.log(re)
                     layer.msg("办理失败");
                 }
-            })*/
+            })
             return false;
         });
         form.render();

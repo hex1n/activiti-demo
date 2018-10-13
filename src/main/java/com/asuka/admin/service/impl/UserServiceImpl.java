@@ -137,7 +137,7 @@ public class UserServiceImpl extends ServiceImpl<UserDao, User> implements UserS
 	}
 
 	@Override
-	public List<User> findUserByNickName(String taskUser) {
+	public User findUserByNickName(String taskUser) {
 
 
 		return baseMapper.findUserByNickName(taskUser);

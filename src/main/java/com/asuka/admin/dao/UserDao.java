@@ -29,5 +29,5 @@ public interface UserDao extends BaseMapper<User> {
 
     List<String> findUserRoleNameById(Long id);
 
-    List<User> findUserByNickName(String nickName);
+    User findUserByNickName(String nickName);
 }

@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-package com.asuka.admin.org.act.image.impl;
+package com.asuka.admin.org.activiti.image.impl;
 
 import org.activiti.bpmn.model.AssociationDirection;
 import org.activiti.bpmn.model.GraphicInfo;

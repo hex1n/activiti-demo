@@ -106,7 +106,7 @@
         var active={
             addUser : function(){
                 var addIndex = layer.open({
-                    title : "添加会员",
+                    title : "添加用户",
                     type : 2,
                     content : "${base}/admin/system/user/add",
                     success : function(layero, addIndex){
